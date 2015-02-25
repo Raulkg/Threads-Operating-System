@@ -21,6 +21,9 @@
 	do_Create() Creates new TaskCB object by invoking the constructor. Due to absence of explicit instruction in the 
 	assignment description, priorities of the new threads has been set to an arbitrary number 0. 
 	Should there be any Error or Warning occured during the execution of OSP2, relavant messages would be output to console. 
+	
+	The scheduling alsorithm used here is based on Round-robin with time quanta provided
+	by static variable TimeQuanta. By default it is set to 2
 ****************************************************************************************************************************/
 
 
@@ -54,6 +57,7 @@ import osp.Resources.*;
 public class ThreadCB extends IflThreadCB 
 {
 	static List<ThreadCB> ReadyQueue; //The list of files that the task is utilizing
+	private static int TimeQuanta = 2; //Unit time for round robin
 	/**
 		The thread constructor. Must call super(); as its first statement.
 		@OSPProject Threads
@@ -232,7 +236,12 @@ public class ThreadCB extends IflThreadCB
 	{
 		// your code goes here
 		
-		//Current running thread have not finished it's time quanta
+		//Time quanta for current thread is not yet done
+		if (MMU.getPTBR() != null)
+		{
+			if(MMU.getPTBR().getTask().getCurrentThread().getTimeOnCPU()%TimeQuanta < 1)
+				return SUCCESS;
+		}
 		//Get first thread in the ready queue
 		ThreadCB FirstThreadInReadyQueue;
 		if (!ReadyQueue.isEmpty())
